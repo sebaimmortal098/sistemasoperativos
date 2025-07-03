@@ -144,3 +144,12 @@ Con N=10 copias, el programa debe completar todo el proceso en menos de 1000ms e
 - **Integrantes**: [Agregar nombres de los integrantes del equipo]
 - **Curso**: Sistemas Operativos
 - **Proyecto**: MTPA - Mejorando el Performance de Manejo de Archivos # sistemasoperativos
+
+# Opción 1: Script automático
+compilar.bat
+
+# Opción 2: Manual
+g++ -std=c++11 -pthread -O2 main_simple.cpp -o proyecto_so.exe
+
+# Opción 3: Con Makefile
+make run

@@ -24,9 +24,11 @@ private:
     int numCopias;
     mutex logMutex;
     
-    // Función para encriptar texto usando el algoritmo especificado
+    // Función para encriptar texto usando el algoritmo especificado (OPTIMIZADA)
     string encriptar(const string& texto) {
         string resultado;
+        resultado.reserve(texto.length()); // Optimización: reservar memoria
+        
         for (char c : texto) {
             if (isalpha(c)) {
                 // Desplazar ASCII de letras 3 posiciones a la derecha
@@ -37,7 +39,8 @@ private:
                 }
             } else if (isdigit(c)) {
                 // Intercambiar números por su simétrico (0<->9, 1<->8, etc.)
-                resultado += char('9' - (c - '0') + '0');
+                // Fórmula corregida: '9' - c + '0'
+                resultado += char('9' - c + '0');
             } else {
                 resultado += c;
             }
@@ -45,9 +48,11 @@ private:
         return resultado;
     }
     
-    // Función para desencriptar texto
+    // Función para desencriptar texto (OPTIMIZADA)
     string desencriptar(const string& texto) {
         string resultado;
+        resultado.reserve(texto.length()); // Optimización: reservar memoria
+        
         for (char c : texto) {
             if (isalpha(c)) {
                 // Desplazar ASCII de letras 3 posiciones a la izquierda
@@ -58,7 +63,8 @@ private:
                 }
             } else if (isdigit(c)) {
                 // Intercambiar números por su simétrico (inverso)
-                resultado += char('9' - (c - '0') + '0');
+                // Fórmula corregida: '9' - c + '0' (es simétrica)
+                resultado += char('9' - c + '0');
             } else {
                 resultado += c;
             }
@@ -81,29 +87,37 @@ private:
         return ss.str();
     }
     
-    // Función para leer archivo completo
+    // Función para leer archivo completo (OPTIMIZADA)
     string leerArchivo(const string& nombreArchivo) {
-        ifstream archivo(nombreArchivo);
+        ifstream archivo(nombreArchivo, ios::binary);
         if (!archivo.is_open()) {
             throw runtime_error("No se pudo abrir el archivo: " + nombreArchivo);
         }
         
+        // Optimización: obtener tamaño del archivo y reservar memoria
+        archivo.seekg(0, ios::end);
+        size_t tamaño = archivo.tellg();
+        archivo.seekg(0, ios::beg);
+        
         string contenido;
-        string linea;
-        while (getline(archivo, linea)) {
-            contenido += linea + "\n";
-        }
+        contenido.reserve(tamaño);
+        
+        // Leer todo el archivo de una vez
+        contenido.assign((istreambuf_iterator<char>(archivo)), istreambuf_iterator<char>());
+        
         archivo.close();
         return contenido;
     }
     
-    // Función para escribir archivo
+    // Función para escribir archivo (OPTIMIZADA)
     void escribirArchivo(const string& nombreArchivo, const string& contenido) {
-        ofstream archivo(nombreArchivo);
+        ofstream archivo(nombreArchivo, ios::binary);
         if (!archivo.is_open()) {
             throw runtime_error("No se pudo crear el archivo: " + nombreArchivo);
         }
-        archivo << contenido;
+        
+        // Optimización: escribir todo de una vez
+        archivo.write(contenido.c_str(), contenido.length());
         archivo.close();
     }
     

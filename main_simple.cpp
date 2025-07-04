@@ -225,14 +225,14 @@ private:
             throw runtime_error("No se pudo abrir el archivo: " + nombreArchivo);
         }
         
-        const auto tamaño = archivo.tellg();
+        const auto tamano = archivo.tellg();
         archivo.seekg(0, ios::beg);
         
         string contenido;
-        contenido.resize(tamaño);
+        contenido.resize(tamano);
         
         // Lectura directa optimizada
-        archivo.read(&contenido[0], tamaño);
+        archivo.read(&contenido[0], tamano);
         archivo.close();
         
         return contenido;
@@ -281,7 +281,6 @@ public:
     double generarCopias() {
         const auto inicio = high_resolution_clock::now();
         
-        log("Iniciando generación de " + to_string(numCopias) + " copias...");
         
         const string contenidoOriginal = std::move(leerArchivo(archivoOriginal));
         
@@ -295,7 +294,6 @@ public:
             tareas.emplace_back(async(launch::async, [this, i, &contenidoOriginal]() {
                 const string nombreCopia = to_string(i) + ".txt";
                 escribirArchivo(nombreCopia, contenidoOriginal);
-                log("Copia generada: " + nombreCopia);
             }));
             
             // Control de threads: esperar si tenemos demasiados activos
@@ -316,7 +314,6 @@ public:
         const auto fin = high_resolution_clock::now();
         const auto duracion = duration_cast<microseconds>(fin - inicio);
         
-        log("Copias generadas exitosamente.");
         return duracion.count() / 1000.0;
     }
     
@@ -324,7 +321,6 @@ public:
     double encriptarYGenerarHash() {
         auto inicio = high_resolution_clock::now();
         
-        log("Iniciando encriptación y generación de hash...");
         
         vector<future<void>> tareas;
         for (int i = 1; i <= numCopias; i++) {
@@ -340,8 +336,6 @@ public:
                 string hash = generarHashSimple(contenidoEncriptado);
                 string nombreHash = to_string(i) + ".sha";
                 escribirArchivo(nombreHash, hash);
-                
-                log("Procesado: " + nombreArchivo + " -> " + nombreHash);
             }));
         }
         
@@ -352,17 +346,12 @@ public:
         
         auto fin = high_resolution_clock::now();
         auto duracion = duration_cast<microseconds>(fin - inicio);
-        
-        log("Encriptación y hash completados.");
         return duracion.count() / 1000.0; // Retornar en milisegundos
     }
     
     // Función para validar hash y desencriptar
     double validarYDesencriptar() {
         auto inicio = high_resolution_clock::now();
-        
-        log("Iniciando validación de hash y desencriptación...");
-        
         vector<future<bool>> tareas;
         for (int i = 1; i <= numCopias; i++) {
             tareas.push_back(async(launch::async, [this, i]() {
@@ -381,7 +370,6 @@ public:
                     // Desencriptar contenido
                     string contenidoDesencriptado = desencriptar(contenidoEncriptado);
                     escribirArchivo(nombreArchivo, contenidoDesencriptado);
-                    log("Validado y desencriptado: " + nombreArchivo);
                 } else {
                     log("ERROR: Hash inválido para " + nombreArchivo);
                 }
@@ -400,16 +388,12 @@ public:
         
         auto fin = high_resolution_clock::now();
         auto duracion = duration_cast<microseconds>(fin - inicio);
-        
-        log("Validación completada. Errores encontrados: " + to_string(errores));
         return duracion.count() / 1000.0; // Retornar en milisegundos
     }
     
     // Función para comparar archivos con el original
     double compararConOriginal() {
         auto inicio = high_resolution_clock::now();
-        
-        log("Iniciando comparación con archivo original...");
         
         string contenidoOriginal = leerArchivo(archivoOriginal);
         
@@ -419,13 +403,7 @@ public:
                 string nombreArchivo = to_string(i) + ".txt";
                 string contenidoArchivo = leerArchivo(nombreArchivo);
                 
-                bool esIgual = (contenidoArchivo == contenidoOriginal);
-                if (esIgual) {
-                    log("Archivo " + nombreArchivo + " coincide con el original");
-                } else {
-                    log("ERROR: Archivo " + nombreArchivo + " NO coincide con el original");
-                }
-                
+                bool esIgual = (contenidoArchivo == contenidoOriginal);                
                 return esIgual;
             }));
         }
@@ -440,15 +418,11 @@ public:
         
         auto fin = high_resolution_clock::now();
         auto duracion = duration_cast<microseconds>(fin - inicio);
-        
-        log("Comparación completada. Errores encontrados: " + to_string(errores));
         return duracion.count() / 1000.0; // Retornar en milisegundos
     }
     
     // Función para limpiar archivos temporales
     void limpiarArchivos() {
-        log("Limpiando archivos temporales...");
-        
         for (int i = 1; i <= numCopias; i++) {
             string nombreTxt = to_string(i) + ".txt";
             string nombreSha = to_string(i) + ".sha";
@@ -466,8 +440,6 @@ public:
                 remove(nombreSha.c_str());
             }
         }
-        
-        log("Archivos temporales eliminados.");
     }
     
     // Función principal que ejecuta todo el proceso
@@ -499,11 +471,6 @@ public:
         
         double tiempoTotalProceso = tiempo1 + tiempo2 + tiempo3 + tiempo4;
         cout << "TT: " << fixed << setprecision(3) << tiempoTotalProceso << " ms" << endl;
-        
-        cout << "\nNota: TI=hora de comienzo, TPPA=tiempo promedio por archivo, " 
-             << "TFIN=hora finalización, TT=tiempo total" << endl;
-        
-        // Limpiar archivos temporales
         limpiarArchivos();
     }
 };
@@ -520,9 +487,6 @@ int main() {
         cout << "Mejorando el performance de manejo de archivos" << endl;
         cout << "Versión ULTRA-OPTIMIZADA con SHA256 REAL" << endl;
         cout << "Threads disponibles: " << MAX_THREADS << endl;
-        cout << "=============================================" << endl;
-        
-        // Verificar si existe el archivo original
         ifstream checkFile("original.txt");
         if (!checkFile.good()) {
             cout << "Error: No se encontró el archivo original.txt" << endl;
@@ -544,24 +508,6 @@ int main() {
         
         // Ejecutar el proceso
         procesador.ejecutarProceso();
-        
-        cout << "\n=== PROCESO ULTRA-OPTIMIZADO ===" << endl;
-        cout << "El programa ha completado exitosamente el procesamiento" << endl;
-        cout << "usando técnicas de optimización avanzadas:" << endl;
-        cout << "- Procesamiento paralelo con pool de threads controlado" << endl;
-        cout << "- Tablas de lookup precalculadas para encriptación" << endl;
-        cout << "- Hash SHA256 REAL implementado desde cero" << endl;
-        cout << "- I/O optimizado con buffers personalizados" << endl;
-        cout << "- Move semantics y referencias optimizadas" << endl;
-        cout << "- Gestión de memoria con reserve/resize" << endl;
-        cout << "- Soporte completo para caracteres UTF-8" << endl;
-        
-        // Mostrar diferencia de rendimiento
-        cout << "\nDF: Se muestra la diferencia en performance" << endl;
-        cout << "PM: XX% (porcentaje de mejora obtenido)" << endl;
-        cout << "\nNota: DF= diferencia entre tiempo final menos inicial" << endl;
-        cout << "y PM = porcentaje de mejora" << endl;
-        
         return 0;
         
     } catch (const exception& e) {
